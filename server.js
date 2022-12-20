@@ -1,19 +1,39 @@
 const express = require('express');
+const Handlebars = require('handlebars');
 const exphbs = require('express-handlebars');
+const {allowInsecurePrototypeAccess} = require('@handlebars/allow-prototype-access')
+
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
+const passport = require('passport');
+const cookieParser = require('cookie-parser');
+const session = require('express-session');
+
 // (node:6792) [MONGOOSE] DeprecationWarning: Mongoose: the `strictQuery` option will be switched back to `false` by default
 // in Mongoose 7. Use `mongoose.set('strictQuery', false);` if you want to prepare for this change. Or use `mongoose.set('s
 //  trictQuery', true);` to suppress this warning. 
-// mongoose.set('strictQuery', true);
+mongoose.set('strictQuery', true);
+
 // Load models
 const Message = require('./models/message');
+const User = require('./models/user');
 const app = express();
+
 // load keys file
 const Keys = require('./config/keys');
+
 // use body parser middleware
 app.use(bodyParser.urlencoded({extended:false}));
 app.use(bodyParser.json());
+
+// configuration for authentication
+app.use(cookieParser());
+app.use(session({
+    secret: 'mysecret',
+    resave: true,
+    saveUninitialized: true
+}))
+
 // connect to mLab MongoDB
 mongoose.connect(Keys.MongoDB).then(() => {
     console.log("Server is connected to MongooseDB");
@@ -23,8 +43,9 @@ mongoose.connect(Keys.MongoDB).then(() => {
 // environment var for port
 const port = process.env.PORT || 3000;
 // setup view engine
-app.engine('handlebars', exphbs.engine({defaultLayout:'main'}));
+app.engine('handlebars', exphbs.engine({defaultLayout:'main', handlebars: allowInsecurePrototypeAccess(Handlebars)}));
 app.set('view engine','handlebars');
+
 
 app.get('/',(req,res) => {
     res.render('home',{
@@ -58,7 +79,7 @@ app.post('/contactUs',(req,res) => {
         }else{
             Message.find({}).then((messages) => {
                 if (messages) {
-                    res.render('newmessage', {
+                    res.render('newmessage',{
                         title: 'Sent',
                         messages:messages
                     });
