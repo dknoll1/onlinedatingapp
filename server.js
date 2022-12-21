@@ -32,8 +32,16 @@ app.use(session({
     secret: 'mysecret',
     resave: true,
     saveUninitialized: true
-}))
-
+}));
+app.use(passport.initialize());
+app.use(passport.session());
+// Make user global object
+app.use((req,res, next) => {
+    res.locals.user = req.user || null;
+    next();
+});
+// load facebook strategy
+require('./passport/facebook');
 // connect to mLab MongoDB
 mongoose.connect(Keys.MongoDB).then(() => {
     console.log("Server is connected to MongooseDB");
@@ -64,6 +72,48 @@ app.get('/contact',(req,res) => {
         title: 'Contact'
     });
 })
+
+app.get('/auth/facebook',passport.authenticate('facebook', {
+    scope: ['email']
+}));
+app.get('/auth/facebook/callback',passport.authenticate('facebook',{
+    successRedirect: '/profile',
+    failureRedirect: '/'
+}));
+app.get('/profile',(req,res) => {
+    User.findById({_id:req.user._id}).then((user) => {
+        if (user) {
+            user.online = true;
+            user.save((err,user) => {
+                if (err) {
+                    throw err;
+                }else{
+                    res.render('profile', {
+                        title: 'Profile',
+                        user: user
+                    });
+                }
+            })
+        }
+    });
+});
+
+app.get('/logout',(req,res) => {
+    User.findById({_id:req.user._id}).then((user) => {
+        user.online = false;
+        user.save((err,user) => {
+            if (err) {
+                throw err;
+            }
+            if (user) {
+                req.logout(false,(err) => {
+                    if (err) { return next(err); }
+                    res.redirect('/');
+                });
+            }
+        })
+    });
+});
 
 app.post('/contactUs',(req,res) => {
     console.log(req.body);
