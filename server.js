@@ -9,6 +9,7 @@ const passport = require('passport');
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
 const flash = require('connect-flash');
+const bcrypt = require('bcryptjs');
 
 // (node:6792) [MONGOOSE] DeprecationWarning: Mongoose: the `strictQuery` option will be switched back to `false` by default
 // in Mongoose 7. Use `mongoose.set('strictQuery', false);` if you want to prepare for this change. Or use `mongoose.set('s
@@ -38,6 +39,7 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(flash());
+
 app.use((req,res,next) => {
     res.locals.success_msg = req.flash('success_msg');
     res.locals.error_msg = req.flash('error_msg');
@@ -54,6 +56,7 @@ app.use((req,res, next) => {
 // load login strategies
 require('./passport/facebook');
 require('./passport/google');
+require('./passport/local');
 // connect to mLab MongoDB
 mongoose.connect(Keys.MongoDB).then(() => {
     console.log("Server is connected to MongooseDB");
@@ -143,9 +146,52 @@ app.post('/signup',(req,res) => {
             password2: req.body.password2
         });
     }else{
-        res.send('No errors - Ready to create new account!');
+        User.findOne({email:req.body.email})
+        .then((user) => {
+            if (user) {
+                let errors = [];
+                errors.push({text: 'Email already exist'});
+                res.render('newAccount',{
+                    title:'Signup',
+                    errors:errors
+                })
+            }else{
+                var salt = bcrypt.genSaltSync(10);
+                var hash = bcrypt.hashSync(req.body.password, salt);
+                const newUser = {
+                    fullname: req.body.username,
+                    email: req.body.email,
+                    password: hash
+                }
+                new User(newUser).save((err,user) => {
+                    if (err) {
+                        throw err;
+                    }
+                    if (user) {
+                        let success = [];
+                        success.push({text:'You have created an account, you may now login'});
+                        res.render('home',{
+                            success: success
+                        });
+                    }
+                });
+            }
+        });
     }
 });
+
+
+app.get('/loginErrors',(req,res) => {
+    let errors = [];
+    errors.push({text:'Username not found or password incorrect'});
+    res.render('home',{
+        errors:errors
+    });
+});
+app.post('/login',passport.authenticate('local',{
+    successRedirect: '/profile',
+    failureRedirect: '/loginErrors'
+}));
 
 app.get('/logout',(req,res) => {
     User.findById({_id:req.user._id}).then((user) => {

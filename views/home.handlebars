@@ -10,7 +10,13 @@
             <a href="/auth/google"><button type="button" class="btn btn-danger btn-lg" width="20px">Login with Google</button></a>
         </h1>
         <p class="text-center">or</p>
-        <form action="/login">
+        <form action="/login" method="POST">
+            {{#each success}}
+            <p class="green">{{text}}</p>
+            {{/each}}
+            {{#each errors}}
+            <p class="red">{{text}}</p>
+            {{/each}}
         <div class="form-group">
             <label for="email">Email</label>
             <input type="text" name="email" id="email" class="form-control">
