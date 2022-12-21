@@ -30,7 +30,7 @@ passport.use(new GoogleStrategy({
             const newUser = {
                 firstname: profile.name.givenName,
                 lastname: profile.name.familyname,
-                image: profile.photos[0].value,
+                image: profile.photos[0].value || '',
                 fullname: profile.displayName,
                 google: profile.id
             }

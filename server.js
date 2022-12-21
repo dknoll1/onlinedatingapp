@@ -8,6 +8,7 @@ const mongoose = require('mongoose');
 const passport = require('passport');
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
+const flash = require('connect-flash');
 
 // (node:6792) [MONGOOSE] DeprecationWarning: Mongoose: the `strictQuery` option will be switched back to `false` by default
 // in Mongoose 7. Use `mongoose.set('strictQuery', false);` if you want to prepare for this change. Or use `mongoose.set('s
@@ -36,6 +37,15 @@ app.use(session({
 }));
 app.use(passport.initialize());
 app.use(passport.session());
+app.use(flash());
+app.use((req,res,next) => {
+    res.locals.success_msg = req.flash('success_msg');
+    res.locals.error_msg = req.flash('error_msg');
+    res.locals.error = req.flash('error');
+    next();
+});
+// setup express static folder to serve js & css files
+app.use(express.static('public'));
 // Make user global object
 app.use((req,res, next) => {
     res.locals.user = req.user || null;
@@ -105,6 +115,36 @@ app.get('/profile',requireLogin,(req,res) => {
             })
         }
     });
+});
+
+app.get('/newAccount',(req,res) => {
+    res.render('newAccount', {
+        title: 'Signup'
+    });
+});
+
+app.post('/signup',(req,res) => {
+    console.log(req.body);
+    let errors = [];
+
+    if (req.body.password !== req.body.password2) {
+        errors.push({text: 'Passwords do not match'});
+    }
+    if (req.body.password.length < 5) {
+        errors.push({text: 'Password must be at least 5 characters'})
+    }
+    if (errors.length > 0) {
+        res.render('newAccount',{
+            errors: errors,
+            title: 'Oops!',
+            fullname: req.body.username,
+            email: req.body.email,
+            password: req.body.password,
+            password2: req.body.password2
+        });
+    }else{
+        res.send('No errors - Ready to create new account!');
+    }
 });
 
 app.get('/logout',(req,res) => {
