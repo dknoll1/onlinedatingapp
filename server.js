@@ -126,6 +126,11 @@ app.get('/newAccount',(req,res) => {
     });
 });
 
+app.get('/privacypolicy', function (req, res)
+{
+    res.render('privacypolicy.html');
+});
+
 app.post('/signup',(req,res) => {
     console.log(req.body);
     let errors = [];
