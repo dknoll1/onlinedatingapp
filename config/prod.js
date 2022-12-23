@@ -1,5 +1,5 @@
 module.exports = { 
-    MongoDB: 'mongodb+srv://odaadmin:D6eK03Ygy1uRyJfb@onlinedatingapp.1encedt.mongodb.net/?retryWrites=true&w=majority',
+    MongoDB: process.env.MONGO_DB,
     FacebookAppID: process.env.FB_APP_ID,
     FacebookAppSecret: process.env.FB_APP_SECRET,
     GoogleID: process.env.GOOGLE_ID,
