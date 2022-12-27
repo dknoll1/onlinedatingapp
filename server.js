@@ -12,7 +12,6 @@ const flash = require('connect-flash');
 const bcrypt = require('bcryptjs');
 const formidable = require('formidable');
 
-
 // (node:6792) [MONGOOSE] DeprecationWarning: Mongoose: the `strictQuery` option will be switched back to `false` by default
 // in Mongoose 7. Use `mongoose.set('strictQuery', false);` if you want to prepare for this change. Or use `mongoose.set('s
 //  trictQuery', true);` to suppress this warning. 
@@ -124,6 +123,34 @@ app.get('/profile',requireLogin,(req,res) => {
     });
 });
 
+app.post('/updateProfile',requireLogin,(req,res) => {
+    User.findById({_id:req.user._id})
+    .then((user) => {
+        user.fullname = req.body.fullname;
+        user.email = req.body.email;
+        user.gender = req.body.gender;
+        user.about = req.body.about;
+        user.save(() => {
+            res.redirect('/profile');
+        });
+    });
+});
+
+app.get('/deleteAccount',(req,res) => {
+    User.deleteOne({_id:req.user._id})
+    .then(() => {
+        res.render('accountDeleted', {
+            title: 'Deleted'
+        });
+    });
+});
+
+app.get('/askToDelete',(req,res) => {
+    res.render('askToDelete', {
+        title: 'Delete'
+    });
+});
+
 app.get('/newAccount',(req,res) => {
     res.render('newAccount', {
         title: 'Signup'
@@ -206,7 +233,7 @@ app.get('/uploadImage',(req,res) => {
 app.post('/uploadAvatar',(req,res) => {
     User.findById({_id:req.user._id})
     .then((user) => {
-        user.image = req.body.upload;
+        user.image = `https://plentyofham.s3.us-west-2.amazonaws.com/${req.body.upload}`;
         user.save((err) => {
             if (err) {
                 throw err;

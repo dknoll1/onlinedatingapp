@@ -1,4 +1,5 @@
-$(document).ready(function {
+console.log('hi');
+$(document).ready(function(){
     $('.upload-input').on('click',function() {
         $('#upload-input').click();
     });

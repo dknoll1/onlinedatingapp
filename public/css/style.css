@@ -7,3 +7,7 @@ h1 {
 .red {
     color:red;
 }
+
+.fa-edit {
+    cursor: pointer;   
+}
