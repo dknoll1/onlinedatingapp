@@ -28,7 +28,7 @@ const Keys = require('./config/keys');
 // load helpers
 const {requireLogin,ensureGuest} = require('./helpers/auth');
 const {uploadImage} = require('./helpers/aws');
-const { restart } = require('nodemon');
+// const { restart } = require('nodemon');
 // use body parser middleware
 app.use(bodyParser.urlencoded({extended:false}));
 app.use(bodyParser.json());
