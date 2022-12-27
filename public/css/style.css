@@ -11,3 +11,7 @@ h1 {
 .fa-edit {
     cursor: pointer;   
 }
+.form-group {
+    padding-top:3px;
+    padding-bottom:3px;
+}
